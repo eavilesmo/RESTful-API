@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>Customer Update Form</title>
+</head>
+<body>
+<h1>Customer Update Form</h1>
+<form method="POST" action="{{ url_for('update_form') }}">
+    <fieldset style="width:500px">
+        <legend>Please fill in the fields below: </legend>
+            {{ form.csrf_token }}
+            {{ form.custom_id.label }}
+            {{ form.custom_id }}
+            <ul>
+                {% for error in form.custom_id.errors %}
+                <li style="color:red">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {{ form.custom_name.label }}
+            {{ form.custom_name }}
+            <ul>
+                {% for error in form.custom_name.errors %}
+                <li style="color:red">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {{ form.custom_surname.label }}
+            {{ form.custom_surname }}
+            <ul>
+                {% for error in form.custom_surname.errors %}
+                <li style="color:red">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {{ form.custom_email.label }}
+            {{ form.custom_email }}
+            <ul>
+                {% for error in form.custom_email.errors %}
+                <li style="color:red">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {{ form.custom_birthdate.label }}
+            {{ form.custom_birthdate }}
+            <ul>
+                {% for error in form.custom_birthdate.errors %}
+                <li style="color:red">{{ error }}</li>
+                {% endfor %}
+            </ul>
+    </fieldset>
+    <br>
+    <input type="submit" value="Update">
+    <input type="reset" value="Reset fields">
+    <button type="button" onclick="window.location.href='/home'">Home</button>
+</form>
+</body>
+</html>

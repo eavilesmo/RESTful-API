@@ -1,0 +1,25 @@
+<html>
+<head>    
+    <title>FTC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h1>Welcome to Faster Than Coding!</h1>
+<form method="POST" action="{{ url_for('home') }}">
+    <fieldset width: 500px margin:auto border: 1px solid rgb(255, 255, 255)>
+        <legend>Please choose an option: </legend>
+        {{ form.csrf_token }}
+        {% for subfield in form.radio_buttons %}
+        <tr>
+            <td>{{ subfield }}</td>
+            <td>{{ subfield.label }}</td>
+            <br>
+        </tr>
+        {% endfor %}
+    </fieldset>
+    <br>
+    <input type="submit" value="OK">
+</form>
+<h2>{{ message }}</h2>
+</body>
+</html>
