@@ -51,9 +51,7 @@ def welcome_page():
 def home():
     form = HomePage()
     if form.validate_on_submit():
-        print(form.validate_on_submit())
         if form.radio_buttons.data == "Option 1":
-            print(form.radio_buttons.data)
             SpaceShip(Game.ship_list)
             message_created = "The space ship has been created!"
             return render_template("home.html", form=form, message = message_created)
