@@ -24,12 +24,12 @@ class FlaskTestApp(unittest.TestCase):
     # Testing if the options from the home page are correctly created
     def test_03_home(self):
         response = self.app.get("/home", content_type="html/text")
-        self.assertTrue(b"Create a new space ship" in response.data)
+        self.assertTrue(b"Create a new spaceship" in response.data)
 
     # Testing if the first option is correctly working
     def test_04_home_create_ship(self):
         response = self.app.post("/home", data=dict(radio_buttons="Option 1"), follow_redirects=True)
-        self.assertIn(b"The space ship has been created!", response.data)
+        self.assertIn(b"The spaceship has been created!", response.data)
 
 # Main
 if __name__ == "__main__":
