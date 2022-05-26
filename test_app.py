@@ -26,11 +26,15 @@ class FlaskTestApp(unittest.TestCase):
         response = self.app.get("/home", content_type="html/text")
         self.assertTrue(b"Create a new spaceship" in response.data)
 
-    # Testing if the first option is correctly working
+    # Testing if the first option (create a spaceship) is correctly working
     def test_04_home_create_ship(self):
         response = self.app.post("/home", data=dict(radio_buttons="Option 1"), follow_redirects=True)
         self.assertIn(b"The spaceship has been created!", response.data)
-
+    
+    # Testing if the second option (see all spaceships) is correctly working
+    def test_05_home_see_spaceships(self):
+        response = self.app.post("/home", data=dict(radio_buttons="Option 2"), follow_redirects=True)
+        self.assertIn(b"Spaceship 0", response.data)
 # Main
 if __name__ == "__main__":
     unittest.main()

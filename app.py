@@ -12,7 +12,8 @@ app.config["SECRET_KEY"] = "22_this_is_a_flask_test_22"
 # -------------------------
 # VARIABLES
 # -------------------------
-radio_bt = [("Option 1", "Create a new spaceship")]
+radio_bt = [("Option 1", "Create a new spaceship"), 
+            ("Option 2", "See all spaceships created")]
 redirect_message = """<h2>Welcome to FTC!</h2><button type="button" onclick="window.location.href='/home'">Home</button>"""
 
 # -------------------------
@@ -33,6 +34,12 @@ class Spaceship():
 
 class Game():
     ship_list = []
+    
+def get_components(ship_list):
+    elements = []
+    for elem in ship_list:
+        elements.append("Spaceship " + str(elem.id))
+    return elements
 
 class HomePage(FlaskForm):
     radio_buttons = RadioField(choices = radio_bt)
@@ -55,6 +62,13 @@ def home():
             Spaceship(Game.ship_list)
             message_created = "The spaceship has been created!"
             return render_template("home.html", form=form, message = message_created)
+        if form.radio_buttons.data == "Option 2":
+            all_elements = get_components(Game.ship_list)
+            if len(all_elements) == 0:
+                message_elements = "There are no spaceships created yet!"
+                return render_template("home.html", form=form, message = message_elements)
+            else:
+                return render_template("home.html", form=form, elements = all_elements)
     return render_template("home.html", form=form)
 
 # -------------------------
