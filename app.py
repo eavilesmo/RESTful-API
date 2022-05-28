@@ -36,7 +36,11 @@ class Spaceship():
             return False
     
     def attack(self, spaceship_id):
-        Game.ship_list[spaceship_id].health -= 1
+        if Game.ship_list[spaceship_id].health <= 0:
+            return False
+        else:
+            Game.ship_list[spaceship_id].health -= 1
+            return True
 
 class Game():
     ship_list = []
@@ -90,9 +94,13 @@ def attack():
         try:
             attacker = int(form.attacker_ship.data)
             attacked = int(form.attacked_ship.data)
-            Game.ship_list[attacker].attack(attacked)
-            message = "Spaceship {} was attacked by spaceship {}!".format(attacked, attacker)
-            return render_template("attack.html", form=form, message = message)
+            result = Game.ship_list[attacker].attack(attacked)
+            if result == True:
+                message = "Spaceship {} was attacked by spaceship {}!".format(attacked, attacker)
+                return render_template("attack.html", form=form, message = message)
+            else:
+                message = "The spaceship you are trying to attack has no life left!"
+                return render_template("attack.html", form=form, message = message)
         except (ValueError, IndexError):
             message = attack_error
             return render_template("attack.html", form=form, message = message)

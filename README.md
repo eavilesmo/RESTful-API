@@ -4,6 +4,9 @@ FTC (Faster Than Coding) is an API based in the FTL game.
 # Functions available
 These are the options available:
 - **Create new spaceship**
+- **See all spaceships created**
+- **Attack a spaceship**
+
 
 # How to run FTC
 - Go to Terminal
