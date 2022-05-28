@@ -35,6 +35,24 @@ class FlaskTestApp(unittest.TestCase):
     def test_05_home_see_spaceships(self):
         response = self.app.post("/home", data=dict(radio_buttons="Option 2"), follow_redirects=True)
         self.assertIn(b"Spaceship 0", response.data)
+    
+    # Attack Page
+    # Testing if the attack page is correctly created
+    def test_06_attack_page(self):
+        response = self.app.get("/attack", content_type="html/text")
+        self.assertTrue(b"Please choose the spaceship you want to attack:" in response.data)
+    
+    # Testing if the attack function works correctly
+    def test_07_attack_function(self):
+        self.app.post("/home", data=dict(radio_buttons="Option 1"), follow_redirects=True)
+        response = self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
+        self.assertTrue(b"Spaceship 1 was attacked by spaceship 0!" in response.data)
+    
+    # Testing if the attack function works correctly with incorrect data
+    def test_08_attack_function_incorrect_data(self):
+        response = self.app.post("/attack", data=dict(attacker_ship="nothing", attacked_ship="here"), follow_redirects=True)
+        self.assertTrue(b"The spaceship ID is not correct." in response.data)
+
 # Main
 if __name__ == "__main__":
     unittest.main()
