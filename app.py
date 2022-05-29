@@ -11,13 +11,26 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "22_this_is_a_flask_test_22"
 
 # -------------------------
+# CONSTANTS
+# -------------------------
+
+MSG_ATTACKER_DEAD = 0
+MSG_ATTACKED_DEAD = 1
+MSG_ATTACK_PERFORMED = 2
+MSG_ATTACK_FAILED = 3
+
+# -------------------------
 # VARIABLES
 # -------------------------
 radio_bt = [("Option 1", "Create a new spaceship"), 
             ("Option 2", "See all spaceships created"),
             ("Option 3", "Attack a spaceship")]
 redirect_message = """<h2>Welcome to FTC!</h2><button type="button" onclick="window.location.href='/home'">Home</button>"""
-attack_error = "The spaceship ID is not correct. Please make sure the spaceship is created or that you introduced the number correctly."
+
+attack_dict = {MSG_ATTACKER_DEAD: "The attacker spaceship has no life left!", 
+               MSG_ATTACKED_DEAD: "The spaceship you are trying to attack has no life left!", 
+               MSG_ATTACK_PERFORMED: "Spaceship {} was attacked by spaceship {}!",
+               MSG_ATTACK_FAILED: "The spaceship ID is not correct. Please make sure the spaceship is created or that you introduced the number correctly."}
 
 # -------------------------
 # CLASSES
@@ -28,19 +41,15 @@ class Spaceship():
         self.is_alive = True
         self.id = len(ship_list)
         ship_list.append(self)
-
-    def check_status(self):
-        if self.health > 0:
-            return True
-        else:
-            return False
     
     def attack(self, spaceship_id):
+        if self.health <= 0:
+            return MSG_ATTACKER_DEAD
         if Game.ship_list[spaceship_id].health <= 0:
-            return False
+            return MSG_ATTACKED_DEAD
         else:
             Game.ship_list[spaceship_id].health -= 1
-            return True
+            return MSG_ATTACK_PERFORMED
 
 class Game():
     ship_list = []
@@ -95,14 +104,17 @@ def attack():
             attacker = int(form.attacker_ship.data)
             attacked = int(form.attacked_ship.data)
             result = Game.ship_list[attacker].attack(attacked)
-            if result == True:
-                message = "Spaceship {} was attacked by spaceship {}!".format(attacked, attacker)
+            if result == MSG_ATTACKER_DEAD:
+                message = attack_dict[MSG_ATTACKER_DEAD]
                 return render_template("attack.html", form=form, message = message)
-            else:
-                message = "The spaceship you are trying to attack has no life left!"
+            elif result == MSG_ATTACKED_DEAD:
+                message = message = attack_dict[MSG_ATTACKED_DEAD]
+                return render_template("attack.html", form=form, message = message)
+            elif result == MSG_ATTACK_PERFORMED:
+                message = message = attack_dict[MSG_ATTACK_PERFORMED].format(attacked, attacker)
                 return render_template("attack.html", form=form, message = message)
         except (ValueError, IndexError):
-            message = attack_error
+            message = attack_dict[MSG_ATTACK_FAILED]
             return render_template("attack.html", form=form, message = message)
     return render_template("attack.html", form=form)
 

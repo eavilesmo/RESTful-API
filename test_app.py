@@ -53,12 +53,17 @@ class FlaskTestApp(unittest.TestCase):
         response = self.app.post("/attack", data=dict(attacker_ship="nothing", attacked_ship="here"), follow_redirects=True)
         self.assertTrue(b"The spaceship ID is not correct." in response.data)
     
-    # Testing if the attack function does not work when the spaceship health is 0
-    def test_09_attack_function_with_no_health(self):
+    # Testing if the attack function does not work when the attacked spaceship health is 0
+    def test_09_attack_function_attacked_with_no_health(self):
         for n in range(11):
             self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
         response = self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
         self.assertTrue(b"The spaceship you are trying to attack has no life left!" in response.data)
+    
+    # Testing if the attack function does not work when the attacker spaceship health is 0
+    def test_10_attack_function_attacker_with_no_health(self):
+        response = self.app.post("/attack", data=dict(attacker_ship=1, attacked_ship=0), follow_redirects=True)
+        self.assertTrue(b"The attacker spaceship has no life left!" in response.data)
 
 # Main
 if __name__ == "__main__":
