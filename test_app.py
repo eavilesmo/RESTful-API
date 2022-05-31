@@ -26,10 +26,11 @@ class FlaskTestApp(unittest.TestCase):
         response = self.app.get("/home", content_type="html/text")
         self.assertTrue(b"Create a new spaceship" in response.data)
 
-    # Testing if the first option (create a spaceship) is correctly working
-    def test_04_home_create_ship(self):
-        response = self.app.post("/home", data=dict(radio_buttons="Option 1"), follow_redirects=True)
-        self.assertIn(b"The spaceship has been created!", response.data)
+    # Create Spaceship Page
+    # Testing if the create a spaceship option is correctly working
+    def test_04_create_spaceship(self):
+        response = self.app.post("/create-ship", data=dict(spaceship_life="5"), follow_redirects=True)
+        self.assertIn(b"The spaceship has been created! Life: ", response.data)
     
     # Testing if the second option (see all spaceships) is correctly working
     def test_05_home_see_spaceships(self):
@@ -44,18 +45,18 @@ class FlaskTestApp(unittest.TestCase):
     
     # Testing if the attack function works correctly
     def test_07_attack_function(self):
-        self.app.post("/home", data=dict(radio_buttons="Option 1"), follow_redirects=True)
+        response = self.app.post("/create-ship", data=dict(spaceship_life="5"), follow_redirects=True)
         response = self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
         self.assertTrue(b"Spaceship 1 was attacked by spaceship 0!" in response.data)
     
     # Testing if the attack function works correctly with incorrect data
     def test_08_attack_function_incorrect_data(self):
-        response = self.app.post("/attack", data=dict(attacker_ship="nothing", attacked_ship="here"), follow_redirects=True)
+        response = self.app.post("/attack", data=dict(attacker_ship=150500, attacked_ship=450500), follow_redirects=True)
         self.assertTrue(b"The spaceship ID is not correct." in response.data)
     
     # Testing if the attack function does not work when the attacked spaceship health is 0
     def test_09_attack_function_attacked_with_no_health(self):
-        for n in range(11):
+        for n in range(5):
             self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
         response = self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
         self.assertTrue(b"The spaceship you are trying to attack has no life left!" in response.data)
