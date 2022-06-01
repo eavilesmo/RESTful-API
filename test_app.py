@@ -29,13 +29,13 @@ class FlaskTestApp(unittest.TestCase):
     # Create Spaceship Page
     # Testing if the create a spaceship option is correctly working
     def test_04_create_spaceship(self):
-        response = self.app.post("/create-ship", data=dict(spaceship_life="5"), follow_redirects=True)
-        self.assertIn(b"The spaceship has been created! Life: ", response.data)
+        response = self.app.post("/create-ship", data=dict(spaceship_life="5", spaceship_total_power="15"), follow_redirects=True)
+        self.assertIn(b"The spaceship has been created! Life: 5, total power: 15", response.data)
     
     # Testing if the second option (see all spaceships) is correctly working
-    def test_05_home_see_spaceships(self):
+    def test_05_see_all_spaceships(self):
         response = self.app.post("/home", data=dict(radio_buttons="Option 2"), follow_redirects=True)
-        self.assertIn(b"Spaceship 0", response.data)
+        self.assertIn(b"Spaceship 0. Life: 5, total power: 15", response.data)
     
     # Attack Page
     # Testing if the attack page is correctly created
@@ -45,7 +45,7 @@ class FlaskTestApp(unittest.TestCase):
     
     # Testing if the attack function works correctly
     def test_07_attack_function(self):
-        response = self.app.post("/create-ship", data=dict(spaceship_life="5"), follow_redirects=True)
+        response = self.app.post("/create-ship", data=dict(spaceship_life="5", spaceship_total_power="15"), follow_redirects=True)
         response = self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=1), follow_redirects=True)
         self.assertTrue(b"Spaceship 1 was attacked by spaceship 0!" in response.data)
     
@@ -65,6 +65,11 @@ class FlaskTestApp(unittest.TestCase):
     def test_10_attack_function_attacker_with_no_health(self):
         response = self.app.post("/attack", data=dict(attacker_ship=1, attacked_ship=0), follow_redirects=True)
         self.assertTrue(b"The attacker spaceship has no life left!" in response.data)
+    
+    # Testing if the attack function does not work when the attacker and the attacked spaceship is the same
+    def test_11_attack_function_with_same_spaceship(self):
+        response = self.app.post("/attack", data=dict(attacker_ship=0, attacked_ship=0), follow_redirects=True)
+        self.assertTrue(b"The attacker spaceship and the attacked spaceship cannot be the same!" in response.data)
 
 # Main
 if __name__ == "__main__":

@@ -16,6 +16,13 @@
             <li style="color:red">{{ error }}</li>
             {% endfor %}
         </ul>
+        {{ form.spaceship_total_power.label }}
+        {{ form.spaceship_total_power }}
+        <ul>
+            {% for error in form.spaceship_life.errors %}
+            <li style="color:red">{{ error }}</li>
+            {% endfor %}
+        </ul>
     </fieldset>
 <br>
 <input type="submit" value="Create">

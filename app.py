@@ -18,6 +18,7 @@ MSG_ATTACKER_DEAD = 0
 MSG_ATTACKED_DEAD = 1
 MSG_ATTACK_PERFORMED = 2
 MSG_ATTACK_FAILED = 3
+MSG_POWER_MISMATCH = 4
 
 # -------------------------
 # VARIABLES
@@ -26,22 +27,27 @@ radio_bt = [("Option 1", "Create a new spaceship"),
             ("Option 2", "See all spaceships created"),
             ("Option 3", "Attack a spaceship")]
 redirect_message = """<h2>Welcome to FTC!</h2><button type="button" onclick="window.location.href='/home'">Home</button>"""
+all_spaceships = """<h2>List of all spaceships created: </h2>{}
+                    <br><button type="button" onclick="window.location.href='/home'">Home</button>"""
 
 attack_dict = {MSG_ATTACKER_DEAD: "The attacker spaceship has no life left!", 
                MSG_ATTACKED_DEAD: "The spaceship you are trying to attack has no life left!", 
                MSG_ATTACK_PERFORMED: "Spaceship {} was attacked by spaceship {}!",
-               MSG_ATTACK_FAILED: "The spaceship ID is not correct. Please make sure the spaceship is created or that you introduced the number correctly."}
+               MSG_ATTACK_FAILED: "The spaceship ID is not correct. Please make sure the spaceship is created or that you introduced the number correctly.", 
+               MSG_POWER_MISMATCH: "The power not in use is higher than the total power of the spaceship. Please check the power."}
 
 # -------------------------
 # CLASSES
 # -------------------------
 class Spaceship():
-    def __init__(self, spaceship_life, ship_list:list):
+    def __init__(self, spaceship_life, spaceship_total_power, ship_list:list):
         self.health = spaceship_life
         self.is_alive = True
         self.id = len(ship_list)
         ship_list.append(self)
         self.weapon = Weapon()
+        self.total_power = spaceship_total_power
+        self.power_not_in_use = 0
     
     def attack(self, spaceship_id, weapon):
         if self.health <= 0:
@@ -51,6 +57,10 @@ class Spaceship():
         else:
             Game.ship_list[spaceship_id].health -= weapon.weapon_damage
             return MSG_ATTACK_PERFORMED
+    
+    def check_power(self):
+        if self.power_not_in_use > self.total_power:
+            return MSG_POWER_MISMATCH
 
 class Game():
     ship_list = []
@@ -60,16 +70,17 @@ class Weapon():
         self.weapon_damage = 1
     
 def get_components(ship_list):
-    elements = []
+    elements = ""
     for elem in ship_list:
-        elements.append("Spaceship " + str(elem.id))
+        elements += "Spaceship {}. Life: {}, total power: {}<br>".format(str(elem.id), str(elem.health), str(elem.total_power))
     return elements
 
 class HomePage(FlaskForm):
     radio_buttons = RadioField(choices = radio_bt)
 
 class CreatePage(FlaskForm):
-    spaceship_life = IntegerField("Spaceship life: ", validators=[InputRequired()])
+    spaceship_life = IntegerField("Life of the spaceship: ", validators=[InputRequired()])
+    spaceship_total_power = IntegerField("Total power of the spaceship: ", validators=[InputRequired()])
 
 class AttackPage(FlaskForm):
     attacker_ship = IntegerField("Attacker spaceship: ", validators=[InputRequired()])
@@ -97,7 +108,7 @@ def home():
                 message = "There are no spaceships created yet!"
                 return render_template("home.html", form=form, message = message)
             else:
-                return render_template("home.html", form=form, elements = all_elements)
+                return all_spaceships.format(all_elements)
         if form.radio_buttons.data == "Option 3":
             return redirect(url_for("attack"))
     return render_template("home.html", form=form)
@@ -106,15 +117,14 @@ def home():
 def create_ship():
     form = CreatePage()
     if form.validate_on_submit():
-        print(form.spaceship_life.data)
         spaceship_life = int(form.spaceship_life.data)
-        
-        if spaceship_life > 0 and spaceship_life < 100:
-            Spaceship(spaceship_life, Game.ship_list)
-            message = "The spaceship has been created! Life: {}".format(spaceship_life)
+        spaceship_total_power = int(form.spaceship_total_power.data)
+        if (spaceship_life > 0 and spaceship_life < 100) and (spaceship_total_power >= 0):
+            Spaceship(spaceship_life, spaceship_total_power, Game.ship_list)
+            message = "The spaceship has been created! Life: {}, total power: {}".format(spaceship_life, spaceship_total_power)
             return render_template("create-ship.html", form=form, message = message)
         else:
-            message = "The life of the spaceship must be a number between 1 and 100. Please try again."
+            message = "The life of the spaceship must be a number between 1 and 100 and the total power must be a positive number. Please try again."
             return render_template("create-ship.html", form=form, message = message)
     return render_template("create-ship.html", form=form)
 
@@ -125,6 +135,9 @@ def attack():
         try:
             attacker_id = int(form.attacker_ship.data)
             attacked_id = int(form.attacked_ship.data)
+            if attacker_id == attacked_id:
+                message = "The attacker spaceship and the attacked spaceship cannot be the same!"
+                return render_template("attack.html", form=form, message = message)
             attacker = Game.ship_list[attacker_id]
             result = attacker.attack(attacked_id, attacker.weapon)
             if result == MSG_ATTACKER_DEAD:
