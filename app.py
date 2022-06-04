@@ -26,7 +26,9 @@ MSG_POWER_MISMATCH = 4
 radio_bt = [("Option 1", "Create a new spaceship"), 
             ("Option 2", "See all spaceships created"),
             ("Option 3", "Attack a spaceship")]
+
 redirect_message = """<h2>Welcome to FTC!</h2><button type="button" onclick="window.location.href='/home'">Home</button>"""
+
 all_spaceships = """<h2>List of all spaceships created: </h2>{}
                     <br><button type="button" onclick="window.location.href='/home'">Home</button>"""
 
@@ -34,7 +36,7 @@ attack_dict = {MSG_ATTACKER_DEAD: "The attacker spaceship has no life left!",
                MSG_ATTACKED_DEAD: "The spaceship you are trying to attack has no life left!", 
                MSG_ATTACK_PERFORMED: "Spaceship {} was attacked by spaceship {}!",
                MSG_ATTACK_FAILED: "The spaceship ID is not correct. Please make sure the spaceship is created or that you introduced the number correctly.", 
-               MSG_POWER_MISMATCH: "The power not in use is higher than the total power of the spaceship. Please check the power."}
+               MSG_POWER_MISMATCH: "The power needed for this action is higher than the power available. Please check again."}
 
 # -------------------------
 # CLASSES
@@ -46,20 +48,17 @@ class Spaceship():
         self.id = len(ship_list)
         ship_list.append(self)
         self.weapon = Weapon()
-        self.total_power = spaceship_total_power
-        self.power_not_in_use = 0
+        self.generator = Generator(spaceship_total_power, self.weapon.weapon_power_needed)
     
     def attack(self, spaceship_id, weapon):
         if self.health <= 0:
             return MSG_ATTACKER_DEAD
         if Game.ship_list[spaceship_id].health <= 0:
             return MSG_ATTACKED_DEAD
-        else:
+        if self.generator.attack_is_possible() == True:
             Game.ship_list[spaceship_id].health -= weapon.weapon_damage
             return MSG_ATTACK_PERFORMED
-    
-    def check_power(self):
-        if self.power_not_in_use > self.total_power:
+        elif self.generator.attack_is_possible() == False:
             return MSG_POWER_MISMATCH
 
 class Game():
@@ -68,11 +67,25 @@ class Game():
 class Weapon():
     def __init__(self):
         self.weapon_damage = 1
+        self.weapon_power_needed = 3
     
+class Generator():
+    def __init__(self, spaceship_total_power, weapon_power_needed):
+        self.total_power = spaceship_total_power
+        self.power_not_in_use = self.total_power
+        self.power_consumed_by_weapon = weapon_power_needed
+    
+    def attack_is_possible(self):
+        if self.power_not_in_use >= self.power_consumed_by_weapon:
+            self.power_not_in_use = self.total_power - self.power_consumed_by_weapon            
+            return True
+        else: 
+            return False
+
 def get_components(ship_list):
     elements = ""
     for elem in ship_list:
-        elements += "Spaceship {}. Life: {}, total power: {}<br>".format(str(elem.id), str(elem.health), str(elem.total_power))
+        elements += "Spaceship {}. Life: {}, total power: {}<br>".format(str(elem.id), str(elem.health), str(elem.generator.total_power))
     return elements
 
 class HomePage(FlaskForm):
@@ -135,19 +148,25 @@ def attack():
         try:
             attacker_id = int(form.attacker_ship.data)
             attacked_id = int(form.attacked_ship.data)
+
             if attacker_id == attacked_id:
                 message = "The attacker spaceship and the attacked spaceship cannot be the same!"
                 return render_template("attack.html", form=form, message = message)
+
             attacker = Game.ship_list[attacker_id]
             result = attacker.attack(attacked_id, attacker.weapon)
+
             if result == MSG_ATTACKER_DEAD:
                 message = attack_dict[MSG_ATTACKER_DEAD]
                 return render_template("attack.html", form=form, message = message)
             elif result == MSG_ATTACKED_DEAD:
-                message = message = attack_dict[MSG_ATTACKED_DEAD]
+                message = attack_dict[MSG_ATTACKED_DEAD]
                 return render_template("attack.html", form=form, message = message)
             elif result == MSG_ATTACK_PERFORMED:
-                message = message = attack_dict[MSG_ATTACK_PERFORMED].format(attacked_id, attacker_id)
+                message = attack_dict[MSG_ATTACK_PERFORMED].format(attacked_id, attacker_id)
+                return render_template("attack.html", form=form, message = message)
+            elif result == MSG_POWER_MISMATCH:
+                message = attack_dict[MSG_POWER_MISMATCH]
                 return render_template("attack.html", form=form, message = message)
         except IndexError:
             message = attack_dict[MSG_ATTACK_FAILED]
